@@ -244,5 +244,93 @@ class OpenRouterClientTests(unittest.TestCase):
         self.assertNotIn("TEST_KEY_DO_NOT_LEAK", response.content)
 
 
+
+
+
 if __name__ == "__main__":
     unittest.main()
+
+if __name__ == "__main__":
+    unittest.main()
+
+    def test_model_discovery(self):
+        client = make_client()
+
+        payload = {
+            "data": [
+                {
+                    "id": "free-model:free",
+                    "name": "Free Model",
+                    "context_length": 128000,
+                    "pricing": {
+                        "prompt": "0",
+                        "completion": "0",
+                    },
+                    "architecture": {
+                        "input_modalities": ["text", "image"],
+                    },
+                    "supported_parameters": ["tools"],
+                },
+                {
+                    "id": "paid-model",
+                    "name": "Paid Model",
+                    "context_length": 64000,
+                    "pricing": {
+                        "prompt": "0.000001",
+                        "completion": "0.000002",
+                    },
+                    "architecture": {
+                        "input_modalities": ["text"],
+                    },
+                    "supported_parameters": [],
+                },
+            ]
+        }
+
+        with patch(
+            "providers.openrouter.urlopen",
+            return_value=FakeHTTPResponse(payload),
+        ):
+            models = client.models()
+
+        self.assertEqual(len(models), 2)
+        self.assertEqual(models[0].id, "free-model:free")
+        self.assertTrue(models[0].is_free)
+        self.assertFalse(models[1].is_free)
+        self.assertTrue(models[0].supports_tools)
+        self.assertTrue(models[0].supports_vision)
+
+    def test_free_model_filter(self):
+        client = make_client()
+
+        payload = {
+            "data": [
+                {
+                    "id": "free-one:free",
+                    "name": "Free One",
+                    "context_length": 128000,
+                    "pricing": {
+                        "prompt": "0",
+                        "completion": "0",
+                    },
+                },
+                {
+                    "id": "paid-one",
+                    "name": "Paid One",
+                    "context_length": 64000,
+                    "pricing": {
+                        "prompt": "0.000001",
+                        "completion": "0.000002",
+                    },
+                },
+            ]
+        }
+
+        with patch(
+            "providers.openrouter.urlopen",
+            return_value=FakeHTTPResponse(payload),
+        ):
+            models = client.free_models()
+
+        self.assertEqual(len(models), 1)
+        self.assertEqual(models[0].id, "free-one:free")

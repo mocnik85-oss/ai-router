@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
+from urllib.parse import urljoin
 
 from app.config import Config
 from providers.credentials import CredentialError, CredentialStore
@@ -40,6 +41,24 @@ class OpenRouterModelError(OpenRouterError):
 
 class OpenRouterResponseError(OpenRouterError):
     """Raised when OpenRouter returns an unexpected response."""
+
+
+@dataclass(slots=True)
+class OpenRouterModel:
+    """Normalized OpenRouter model metadata."""
+
+    id: str
+    name: str
+    context_length: int | None
+    prompt_price: str
+    completion_price: str
+    supports_tools: bool
+    supports_vision: bool
+    raw: dict[str, Any]
+
+    @property
+    def is_free(self) -> bool:
+        return self.prompt_price == "0" and self.completion_price == "0"
 
 
 @dataclass(slots=True)
@@ -142,6 +161,124 @@ class OpenRouterClient:
             )
 
         return decoded
+
+    def models(self) -> list[OpenRouterModel]:
+        """Return the current OpenRouter model catalog."""
+
+        request = Request(
+            urljoin(f"{self.base_url}/", "models"),
+            headers={
+                "Accept": "application/json",
+            },
+            method="GET",
+        )
+
+        try:
+            with urlopen(
+                request,
+                timeout=self.config.timeout,
+            ) as response:
+                body = response.read()
+        except HTTPError as exc:
+            if exc.code in (401, 403):
+                raise OpenRouterAuthError(
+                    "OpenRouter authentication failed."
+                ) from exc
+            if 500 <= exc.code <= 599:
+                raise OpenRouterServerError(
+                    f"OpenRouter server error: HTTP {exc.code}."
+                ) from exc
+            raise OpenRouterError(
+                f"OpenRouter model request failed: HTTP {exc.code}."
+            ) from exc
+        except TimeoutError as exc:
+            raise OpenRouterTimeoutError(
+                "OpenRouter model request timed out."
+            ) from exc
+        except URLError as exc:
+            raise OpenRouterConnectionError(
+                "Unable to connect to OpenRouter."
+            ) from exc
+
+        try:
+            decoded = json.loads(body.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise OpenRouterResponseError(
+                "OpenRouter returned invalid JSON."
+            ) from exc
+
+        if not isinstance(decoded, dict):
+            raise OpenRouterResponseError(
+                "OpenRouter returned an unexpected response."
+            )
+
+        raw_models = decoded.get("data")
+
+        if not isinstance(raw_models, list):
+            raise OpenRouterResponseError(
+                "OpenRouter model response did not contain a model list."
+            )
+
+        models: list[OpenRouterModel] = []
+
+        for item in raw_models:
+            if not isinstance(item, dict):
+                continue
+
+            model_id = item.get("id")
+            name = item.get("name")
+
+            if not isinstance(model_id, str) or not isinstance(name, str):
+                continue
+
+            pricing = item.get("pricing")
+            if not isinstance(pricing, dict):
+                continue
+
+            prompt_price = pricing.get("prompt")
+            completion_price = pricing.get("completion")
+
+            if not isinstance(prompt_price, str):
+                continue
+
+            if not isinstance(completion_price, str):
+                continue
+
+            architecture = item.get("architecture")
+            if not isinstance(architecture, dict):
+                architecture = {}
+
+            input_modalities = architecture.get("input_modalities")
+            if not isinstance(input_modalities, list):
+                input_modalities = []
+
+            supported_parameters = item.get("supported_parameters")
+            if not isinstance(supported_parameters, list):
+                supported_parameters = []
+
+            context_length = item.get("context_length")
+            if not isinstance(context_length, int):
+                context_length = None
+
+            models.append(
+                OpenRouterModel(
+                    id=model_id,
+                    name=name,
+                    context_length=context_length,
+                    prompt_price=prompt_price,
+                    completion_price=completion_price,
+                    supports_tools="tools" in supported_parameters,
+                    supports_vision="image" in input_modalities,
+                    raw=item,
+                )
+            )
+
+        return models
+
+    def free_models(self) -> list[OpenRouterModel]:
+        """Return currently advertised zero-cost models."""
+
+        return [model for model in self.models() if model.is_free]
 
     def chat(
         self,

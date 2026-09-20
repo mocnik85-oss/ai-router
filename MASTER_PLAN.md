@@ -18,7 +18,7 @@ Build a secure, maintainable AI orchestration system for the Steam Deck that can
 - Dynamically discover available models
 - Use paid models only when explicitly permitted
 - Use JEV as a decision/orchestration layer
-- Control Codex CLI when appropriate
+- Use OpenCode as the current execution backend
 - Route tasks between models/providers
 - Retry and fall back intelligently
 - Securely store credentials
@@ -39,28 +39,28 @@ The fundamental separation is:
 **Decision-making ≠ model access ≠ execution**
 
 ```text
-                         USER
-                          │
-                     text / voice
-                          │
-                          ▼
-                  ┌───────────────┐
-                  │      JEV      │
-                  │ Decision /    │
-                  │ Orchestration │
-                  └───────┬───────┘
-                          │
-             ┌────────────┼────────────┐
-             ▼            ▼            ▼
-        OpenRouter     Codex CLI    Other tools/
-        models         execution    providers
-             │            │
-             │            ▼
-             │        Local project
-             │
-             ▼
-       Free / paid
-       model pool
+                        USER
+                         │
+                    text / voice
+                         │
+                         ▼
+                ┌───────────────┐
+                │      JEV      │
+                │ Decision /    │
+                │ Orchestration │
+                └───────┬───────┘
+                        │
+           ┌────────────┼────────────┐
+           ▼            ▼            ▼
+      OpenRouter     OpenCode     Other tools/
+       models        execution     providers
+           │            │
+           │            ▼
+           │        Local project
+           │
+           ▼
+      Free / paid
+      model pool
 ```
 
 JEV must not become tightly coupled to a single model or provider.
@@ -108,7 +108,9 @@ for API access.
 
 ChatGPT subscription access and Codex CLI remain separate from the application's API providers.
 
-Codex is an execution/coding capability.
+Codex is an optional execution/coding capability.
+
+Codex integration is currently deferred until the user's Codex allowance becomes available again. No JEV functionality should depend on Codex being available.
 
 ---
 
@@ -121,27 +123,33 @@ JEV should eventually determine:
 - Task type
 - Appropriate model
 - Provider
-- Whether Codex should be used
+- Whether an execution agent should be used
+- Whether OpenCode should be used
+- Whether Codex should be used when available
 - Whether a free model is sufficient
 - Whether a stronger model is justified
 - Retry/fallback strategy
 - Verification requirements
 - Whether human approval is required
 
+OpenCode is the current preferred execution backend.
+
+Codex remains an optional future backend and is not required for the current implementation.
+
 Conceptually:
 
 ```text
 User task
-    ↓
+   ↓
 JEV
-    ↓
+   ↓
 Decision
-    ├── Model
-    ├── Provider
-    ├── Codex?
-    ├── Execution plan
-    ├── Fallback
-    └── Verification
+   ├── Model
+   ├── Provider
+   ├── Execution agent
+   ├── Execution plan
+   ├── Fallback
+   └── Verification
 ```
 
 The exact JEV schema should be designed during implementation rather than prematurely hard-coded.
@@ -154,21 +162,31 @@ The preferred development strategy is:
 
 ```text
 Free/low-cost controller
-          ↓
-         JEV
-          ↓
-      Codex CLI
-          ↓
+        ↓
+       JEV
+        ↓
+     OpenCode
+        ↓
 Implementation
-          ↓
+        ↓
 Tests
-          ↓
+        ↓
 Verification
 ```
 
 Rather than manually implementing the entire system ourselves, establish a capable low-cost/free controller and allow it to assist with implementation.
 
 The controller must operate within explicit security and cost boundaries.
+
+Codex remains a future optional execution backend:
+
+```text
+       JEV
+        ↓
+     Codex CLI
+        ↓
+Implementation
+```
 
 ---
 
@@ -235,7 +253,7 @@ No unnecessary system modifications.
 
 ---
 
-# 8. Phase B — Configuration & Security
+## Phase B — Configuration & Security
 
 **STATUS: ALMOST COMPLETE**
 
@@ -255,655 +273,242 @@ Implemented:
 - Secret redaction
 - Unit tests
 
-Current unit-test status:
+---
 
-```text
-18/18 passing
-```
+## Phase C — OpenRouter
 
-Python compilation:
+**STATUS: COMPLETE**
 
-```text
-PASS
-```
+Implemented:
+
+- OpenRouter client
+- Credential-store integration
+- Public model discovery
+- Dynamic free-model discovery
+- Model metadata normalization
+- Capability detection
+- Error classification
+- Offline unit tests
+
+The controller must not hard-code today's free-model catalogue because availability is dynamic.
 
 ---
 
-# 9. KWallet
+## Phase D — Free Model Controller
 
-KWallet is the preferred local credential backend on this Steam Deck.
+**STATUS: COMPLETE**
 
-Verified:
+Implemented:
 
-```text
-KWallet enabled       YES
-KWallet daemon        RUNNING
-Wallet                kdewallet
-Folder                ai-router
-D-Bus access          WORKING
-Write                 VERIFIED
-Read                  VERIFIED
-```
+- Deterministic free-model selection
+- Capability-aware scoring
+- Tool requirements
+- Vision requirements
+- Reasoning preference
+- Minimum context requirements
+- Router-model exclusion
+- Unit tests
 
-A fake credential was successfully written and read.
-
-The remaining implementation task is to use the confirmed KWallet method:
-
-```text
-org.kde.KWallet.removeEntry(...)
-```
-
-Then:
-
-1. Delete the fake credential
-2. Verify deletion
-3. Add mocked KWallet tests
-4. Ensure normal unit tests never touch the real wallet
-
-No test credentials should remain in KWallet.
+The controller is intentionally deterministic at this stage.
 
 ---
 
-# 10. Immediate Next Step
+## Phase E — Execution Backends
 
-Finish the credential lifecycle.
+**STATUS: PARTIALLY COMPLETE**
 
-Required operations:
+### OpenCode
+
+**STATUS: COMPLETE**
+
+Implemented:
+
+- OpenCode CLI adapter
+- Explicit model selection
+- JSON event-stream parsing
+- Structured execution result
+- Timeout handling
+- Process error handling
+- Offline unit tests
+
+Current preferred execution backend.
+
+The adapter does **not** grant OpenCode unrestricted authority.
+
+OpenCode permissions are not treated as a complete security boundary. JEV must eventually enforce execution policy independently.
+
+### Codex
+
+**STATUS: DEFERRED**
+
+A Codex adapter exists and has been tested, but integration is paused until Codex allowance becomes available.
+
+JEV must not depend on Codex.
+
+---
+
+# 8. Current Test Baseline
+
+Current verified baseline:
 
 ```text
-set()
-get()
-delete()
+55 tests passed
 ```
 
-using the actual KWallet D-Bus interface.
-
-Then run:
+Additional checks completed:
 
 ```text
-Python compile
-Unit tests
-Live KWallet cleanup test
-Full test suite
+python -m compileall -q app providers router tests
 git diff --check
 ```
 
-Only after this passes should Phase B be committed.
-
----
-
-# 11. OpenRouter Client
-
-Build the smallest useful OpenRouter client.
-
-Requirements:
-
-- API key retrieved through credential store
-- No credentials in source
-- No credentials in logs
-- No credentials in Git
-- Configurable model
-- Configurable timeout
-- Clear error classification
-- JSON response parsing
-- Model availability handling
-- No accidental paid requests
-
-Initial target:
-
-```bash
-ai "Hello"
-```
-
-Expected behavior:
+The repository checkpoint containing the execution adapters is:
 
 ```text
-AI response
-```
-
-Diagnostic information should eventually be available:
-
-```text
-Provider: OpenRouter
-Model: <model>
-Cost mode: FREE
-```
-
-without exposing credentials.
-
----
-
-# 12. Free Model Discovery
-
-OpenRouter's free-model catalogue is dynamic.
-
-Do not permanently hard-code today's free models.
-
-Discovery should consider:
-
-- Availability
-- Context length
-- Coding/tool capability
-- Reliability
-- Latency
-- Free/paid status
-- Model limitations
-
-The system must tolerate models disappearing or changing.
-
----
-
-# 13. Free Controller
-
-Establish a free/low-cost model capable of acting as the initial controller.
-
-Its role is to:
-
-- Interpret tasks
-- Help select tools/models
-- Assist with implementation
-- Potentially drive Codex
-- Operate under cost and security restrictions
-
-The controller should not have unrestricted authority.
-
----
-
-# 14. JEV Integration
-
-Integrate JEV after basic model access works.
-
-JEV should receive structured information such as:
-
-```text
-task
-constraints
-available models
-cost policy
-execution capabilities
-project context
-```
-
-and produce a structured decision such as:
-
-```text
-task_type
-selected_model
-provider
-use_codex
-execution_plan
-fallback_policy
-verification_required
-```
-
-Exact fields may change during implementation.
-
----
-
-# 15. Codex Integration
-
-Codex CLI is an execution capability.
-
-Target workflow:
-
-```text
-User
-  ↓
-JEV
-  ↓
-Controller
-  ↓
-Codex CLI
-  ↓
-Inspect project
-  ↓
-Implement
-  ↓
-Run tests
-  ↓
-Report
-  ↓
-Verification
-```
-
-Rules:
-
-- Work only in intended projects
-- Do not modify unrelated repositories
-- Do not expose secrets
-- Review changes
-- Run tests
-- Review Git diff
-- Avoid destructive operations
-- Do not silently spend money
-
----
-
-# 16. Router
-
-The router will eventually handle:
-
-## Provider selection
-
-```text
-OpenRouter
-OpenAI API
-Codex/local execution
-Other providers if added
-```
-
-## Model selection
-
-Based on:
-
-- Task
-- User preference
-- Free-only policy
-- Availability
-- Capability
-- Cost
-- Reliability
-
-## Fallback
-
-Fallback conditions may include:
-
-```text
-Rate limit
-Timeout
-Connection failure
-Server error
-Model unavailable
-Provider outage
-```
-
-Do not blindly retry:
-
-```text
-Invalid credentials
-Invalid configuration
-Permanent authorization failures
+dea78a0 Add OpenCode and Codex execution adapters
 ```
 
 ---
 
-# 17. Cost Safety
+# 9. Next Phase — JEV v0.1
 
-Default configuration:
+JEV v0.1 should initially be a **deterministic policy/orchestration layer**, not another LLM.
 
-```text
-free_only = true
-paid_routing_enabled = false
-```
+Initial responsibilities:
 
-The system must clearly distinguish:
+1. Receive a task.
+2. Determine basic task requirements.
+3. Ask the model controller for an appropriate model.
+4. Select an execution backend.
+5. Construct an explicit execution policy.
+6. Invoke the selected backend.
+7. Collect structured results.
+8. Classify success/failure.
+9. Decide whether retry/fallback is permitted.
+10. Return the result to the caller.
 
-```text
-FREE
-LOW COST
-PAID
-UNKNOWN
-```
+Initial execution modes should be conservative:
 
-Paid routing requires explicit configuration.
+- `read_only`
+- `plan`
+- `modify`
+- `test`
+- `commit`
 
-Local application settings cannot guarantee provider-side spending limits.
+JEV v0.1 should begin with **read-only execution only**.
 
-Provider billing controls remain authoritative.
+No unrestricted `--auto` mode.
 
----
+No automatic Git commits.
 
-# 18. CLI
+No unrestricted shell authority.
 
-Target interface:
-
-```bash
-ai "Explain quantum computing simply"
-
-ai --model MODEL "Explain Proton on Steam Deck"
-
-ai --free-only "..."
-
-ai --status
-
-ai --config
-
-ai --list-models
-
-ai --chat
-
-cat file.txt | ai
-```
-
-Later:
-
-```bash
-ai --voice
-ai --voice --speak
-```
-
-The text CLI must remain fully usable without voice.
+No automatic paid-model routing.
 
 ---
 
-# 19. Voice
+# 10. JEV Execution Policy
 
-Voice comes after the text/AI core works.
-
-Target architecture:
+The execution policy should eventually control at least:
 
 ```text
-Microphone
-    ↓
-PipeWire
-    ↓
-Recorder
-    ↓
-STT
-    ↓
-JEV
-    ↓
-Model / Codex
+read
+edit
+shell
+network
+git
+commit
+workspace
+timeout
+max_attempts
 ```
 
-Prefer local STT where practical.
+The policy must be enforced outside the model's natural-language instructions.
 
-Do not permanently store raw recordings unless explicitly requested.
-
----
-
-# 20. TTS
-
-TTS is optional.
-
-Target:
-
-```bash
-ai --voice --speak
-```
-
-Priority:
+The first real integration test should be:
 
 ```text
-Text input
-    ↓
-AI
-    ↓
-Voice input
-    ↓
-TTS
-```
-
-TTS must not delay the core system.
-
----
-
-# 21. Testing
-
-## Offline tests
-
-Must not consume API quota.
-
-Test:
-
-- Configuration
-- CLI parsing
-- Routing
-- Model selection
-- Redaction
-- Error handling
-- Credential abstraction
-
-## Live tests
-
-Clearly marked because they may consume API quota.
-
-Examples:
-
-- OpenRouter request
-- Model availability
-- JEV integration
-- Codex integration
-- End-to-end workflow
-
-Live tests must never silently run as part of ordinary unit tests.
-
----
-
-# 22. Security
-
-Never:
-
-- Put API keys in source
-- Put secrets in Git
-- Print credentials
-- Log Authorization headers
-- Store browser session cookies
-- Circumvent subscription/API restrictions
-- Store raw recordings unnecessarily
-- Modify unrelated repositories
-- Require unnecessary root privileges
-
-Preferred credential path:
-
-```text
-KWallet
+User task
    ↓
-Credential abstraction
+JEV
    ↓
-Provider client
+Free model selection
+   ↓
+OpenCode
+   ↓
+Read-only repository inspection
+   ↓
+Structured JSON result
+   ↓
+JEV
 ```
+
+The test must verify that the agent can inspect the repository without modifying it.
 
 ---
 
-# 23. SteamOS
+# 11. Security Principles
 
-Keep the application primarily in user space.
-
-Preferred:
-
-```text
-~/.local/bin/
-~/.config/ai-router/
-~/.cache/ai-router/
-~/ai-router/
-```
-
-Avoid unnecessary modifications to:
-
-```text
-/usr
-/etc
-system partitions
-immutable SteamOS components
-```
-
-The final system should be recoverable after normal SteamOS updates.
+- Credentials never belong in project configuration.
+- Secrets must be stored through the credential abstraction.
+- ChatGPT subscription authentication must never be repurposed as API authentication.
+- Providers must remain replaceable.
+- Execution permissions must be explicit.
+- Workspace boundaries must be explicit.
+- Dangerous actions require a higher authorization level.
+- Git commits require explicit policy/approval.
+- Paid routing requires explicit configuration.
+- Model availability must be discovered dynamically.
+- External agent permissions are not considered a complete sandbox.
+- Prefer reversible operations.
+- Test before enabling additional authority.
 
 ---
 
-# 24. Git Discipline
+# 12. Development Workflow
 
-Before milestones:
-
-```bash
-git status
-git diff --check
-git diff
-```
-
-Then commit.
-
-Milestones:
-
-```text
-Phase A  Foundation
-Phase B  Configuration/security
-Phase C  OpenRouter client
-Phase D  Free controller
-Phase E  JEV integration
-Phase F  Codex orchestration
-Phase G  Routing/fallback
-Phase H  CLI polish
-Phase I  Voice
-Phase J  Integration testing
-Phase K  SteamOS hardening
-```
-
----
-
-# 25. Development Method
-
-Do not dump the entire implementation onto the Deck.
-
-Use:
+For each milestone:
 
 ```text
 Plan
-  ↓
-Explain
-  ↓
-Implement small piece
-  ↓
-Test
-  ↓
-Inspect
-  ↓
+ ↓
+Implement small change
+ ↓
+Run focused tests
+ ↓
+Run full test suite
+ ↓
+Verify behavior
+ ↓
+Inspect git diff
+ ↓
 Commit
-  ↓
-Next piece
 ```
 
-If something fails:
+Persistent architectural decisions should be recorded in this document.
 
-```text
-Stop
-  ↓
-Diagnose
-  ↓
-Fix
-  ↓
-Retest
-```
-
-Do not build new layers on top of broken foundations.
+The system should evolve incrementally rather than through a single large implementation.
 
 ---
 
-# 26. Current Status
+# 13. Future Work
 
-```text
-Foundation
-████████████████████ 100%
+Deferred until the core JEV loop is stable:
 
-Configuration/security
-███████████████████░  ~90%
+- Codex integration
+- Paid model routing
+- Advanced fallback strategies
+- Stronger sandboxing
+- Voice input
+- Speech-to-text
+- TTS
+- Persistent task history
+- More execution backends
+- Advanced JEV model-driven decision making
+- Autonomous multi-step workflows
 
-OpenRouter client
-░░░░░░░░░░░░░░░░░░░░   0%
+The immediate goal is a reliable, testable:
 
-Free controller
-░░░░░░░░░░░░░░░░░░░░   0%
+**JEV → OpenRouter → OpenCode → verification**
 
-JEV
-░░░░░░░░░░░░░░░░░░░░   0%
-
-Codex orchestration
-░░░░░░░░░░░░░░░░░░░░   0%
-
-Voice
-░░░░░░░░░░░░░░░░░░░░   0%
-```
-
-These are stage indicators, not an overall percentage-complete estimate.
-
----
-
-# 27. Immediate Action List
-
-## NOW
-
-1. Implement KWallet `removeEntry`
-2. Delete fake credential
-3. Verify deletion
-4. Add mocked credential-store tests
-5. Run full test suite
-6. Run `git diff --check`
-7. Review changes
-8. Commit Phase B
-
-## NEXT
-
-9. Implement minimal OpenRouter client
-10. Store OpenRouter credential through KWallet
-11. Make one controlled live request
-12. Verify free-model handling
-13. Implement dynamic free-model discovery
-14. Establish free controller
-
-## THEN
-
-15. Integrate JEV
-16. Give JEV controlled Codex access
-17. Implement routing/fallback
-18. Build CLI UX
-19. Add voice
-20. Add optional TTS
-21. Perform full integration/security testing
-22. Harden for SteamOS updates
-23. Document installation/recovery/uninstall
-
----
-
-# 28. Definition of Done
-
-The system should eventually support a workflow like:
-
-```bash
-ai "Build me a small Python utility that does X."
-```
-
-and be able to:
-
-```text
-Understand task
-      ↓
-JEV decides strategy
-      ↓
-Select appropriate model
-      ↓
-Respect cost policy
-      ↓
-Delegate coding to Codex when appropriate
-      ↓
-Modify intended project
-      ↓
-Run tests
-      ↓
-Verify result
-      ↓
-Report concise result
-```
-
-while maintaining:
-
-- Secure credentials
-- Provider independence
-- Free/paid safeguards
-- Model fallback
-- Test coverage
-- Git discipline
-- SteamOS resilience
-- Human approval where appropriate
-
----
-
-# 29. Persistent Project Rule
-
-**This document is the authoritative master plan.**
-
-If the architecture or workflow changes materially, update this document.
-
-Major architectural changes should be marked:
-
-**PERSIST**
+loop.

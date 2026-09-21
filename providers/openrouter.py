@@ -58,7 +58,13 @@ class OpenRouterModel:
 
     @property
     def is_free(self) -> bool:
-        return self.prompt_price == "0" and self.completion_price == "0"
+        try:
+            return (
+                float(self.prompt_price) == 0
+                and float(self.completion_price) == 0
+            )
+        except (ValueError, TypeError):
+            return False
 
 
 @dataclass(slots=True)

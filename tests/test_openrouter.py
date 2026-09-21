@@ -247,12 +247,6 @@ class OpenRouterClientTests(unittest.TestCase):
 
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-if __name__ == "__main__":
-    unittest.main()
-
     def test_model_discovery(self):
         client = make_client()
 
@@ -334,3 +328,7 @@ if __name__ == "__main__":
 
         self.assertEqual(len(models), 1)
         self.assertEqual(models[0].id, "free-one:free")
+
+
+if __name__ == "__main__":
+    unittest.main()

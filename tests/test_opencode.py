@@ -178,3 +178,40 @@ def test_os_error_becomes_opencode_error(monkeypatch, tmp_path):
 
     with pytest.raises(OpenCodeError):
         OpenCodeClient().run("hello", tmp_path)
+
+
+# ------------------------------------------------------------------
+# can_route — execution-backend compatibility boundary
+# ------------------------------------------------------------------
+
+
+class TestCanRoute:
+    """Verify OpenCodeClient.can_route() rejects foreign model-ID namespaces."""
+
+    def test_default_rejects_openrouter_ids(self):
+        """OpenRouter-style IDs (org/model:variant) are not routable."""
+        client = OpenCodeClient()
+        assert not client.can_route("thinkingmachines/inkling:free")
+        assert not client.can_route("nvidia/nemotron-3.5-lightning:free")
+        assert not client.can_route("google/gemma-4-26b-a4b-it:free")
+
+    def test_default_accepts_opencode_ids(self):
+        """OpenCode-prefixed IDs are routable."""
+        client = OpenCodeClient()
+        assert client.can_route("opencode/mimo-v2.5-free")
+        assert client.can_route("opencode/claude-3.5-sonnet")
+
+    def test_custom_prefixes(self):
+        """Callers may inject additional routable prefixes."""
+        client = OpenCodeClient(
+            routable_id_prefixes=("opencode/", "acme/",),
+        )
+        assert client.can_route("acme/fast-model")
+        assert client.can_route("opencode/mimo-v2.5-free")
+        assert not client.can_route("thinkingmachines/inkling:free")
+
+    def test_empty_prefixes_rejects_all(self):
+        """An empty prefix tuple makes everything unroutable."""
+        client = OpenCodeClient(routable_id_prefixes=())
+        assert not client.can_route("opencode/mimo-v2.5-free")
+        assert not client.can_route("anything/at-all")

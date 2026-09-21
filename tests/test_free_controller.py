@@ -182,5 +182,103 @@ class FreeModelControllerTests(unittest.TestCase):
         self.assertIsNone(self.controller.select([]))
 
 
+class RealCatalogueRepresentationTests(unittest.TestCase):
+    """Prove that models in the format returned by the real OpenRouter
+    catalogue can be selected by FreeModelController."""
+
+    def setUp(self):
+        self.controller = FreeModelController()
+
+    def test_real_catalogue_free_model_selected(self):
+        """A model parsed from real OpenRouter JSON with prompt_price='0' is free."""
+        model = OpenRouterModel(
+            id="google/gemma-4-26b-a4b-it:free",
+            name="Google Gemma 4 26B A4B IT :free",
+            context_length=262144,
+            prompt_price="0",
+            completion_price="0",
+            supports_tools=True,
+            supports_vision=True,
+            raw={
+                "reasoning": {"mandatory": False, "default_enabled": True},
+            },
+        )
+        self.assertTrue(model.is_free)
+        score = self.controller.score(model)
+        self.assertGreater(score, 0)
+        selected = self.controller.select([model])
+        self.assertIsNotNone(selected)
+        self.assertEqual(selected.id, "google/gemma-4-26b-a4b-it:free")
+
+    def test_real_catalogue_mixed_catalog_selects_free(self):
+        """From a mixed real-format catalogue, the free model is selected."""
+        free = OpenRouterModel(
+            id="nvidia/nemotron-3.5-lightning:free",
+            name="NVIDIA Nemotron 3.5 Lightning (free)",
+            context_length=1000000,
+            prompt_price="0",
+            completion_price="0",
+            supports_tools=True,
+            supports_vision=False,
+            raw={},
+        )
+        paid = OpenRouterModel(
+            id="x-ai/grok-4.7",
+            name="xAI Grok 4.7",
+            context_length=1000000,
+            prompt_price="0.0000016",
+            completion_price="0.0000048",
+            supports_tools=True,
+            supports_vision=False,
+            raw={},
+        )
+        router_meta = OpenRouterModel(
+            id="openrouter/free",
+            name="OpenRouter Free",
+            context_length=None,
+            prompt_price="0",
+            completion_price="0",
+            supports_tools=True,
+            supports_vision=False,
+            raw={},
+        )
+
+        candidates = self.controller.candidates([paid, free, router_meta])
+        self.assertEqual(len(candidates), 1)
+        self.assertEqual(candidates[0].id, "nvidia/nemotron-3.5-lightning:free")
+
+    def test_is_free_accepts_zero_like_strings(self):
+        """is_free recognises equivalent zero representations."""
+        for price in ("0", "0.0", "0.00", "0.000000"):
+            model = OpenRouterModel(
+                id=f"test/{price}",
+                name="test",
+                context_length=1000,
+                prompt_price=price,
+                completion_price=price,
+                supports_tools=False,
+                supports_vision=False,
+                raw={},
+            )
+            with self.subTest(price=price):
+                self.assertTrue(model.is_free)
+
+    def test_is_free_rejects_nonzero(self):
+        """is_free rejects any non-zero pricing."""
+        for price in ("0.000001", "0.001", "1", "-1"):
+            model = OpenRouterModel(
+                id=f"test/{price}",
+                name="test",
+                context_length=1000,
+                prompt_price=price,
+                completion_price="0",
+                supports_tools=False,
+                supports_vision=False,
+                raw={},
+            )
+            with self.subTest(price=price):
+                self.assertFalse(model.is_free)
+
+
 if __name__ == "__main__":
     unittest.main()

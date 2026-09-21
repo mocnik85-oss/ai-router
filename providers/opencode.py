@@ -58,14 +58,40 @@ class OpenCodeClient:
     DEFAULT_EXECUTABLE = str(Path.home() / ".opencode" / "bin" / "opencode")
     DEFAULT_MODEL = "opencode/mimo-v2.5-free"
 
+    #: Model-ID prefixes this backend can route.  OpenRouter IDs
+    #: (``org/model:variant``) are a different namespace and must not
+    #: be forwarded unchanged.  Subclasses or callers may extend this
+    #: tuple to declare additional routable prefixes.
+    ROUTABLE_ID_PREFIXES: tuple[str, ...] = ("opencode/",)
+
     def __init__(
         self,
         *,
         executable: str | None = None,
         timeout: float = 120.0,
+        routable_id_prefixes: tuple[str, ...] | None = None,
     ) -> None:
         self.executable = executable or self.DEFAULT_EXECUTABLE
         self.timeout = timeout
+        self._routable_id_prefixes = (
+            routable_id_prefixes
+            if routable_id_prefixes is not None
+            else self.ROUTABLE_ID_PREFIXES
+        )
+
+    # ------------------------------------------------------------------
+    # Capability boundary
+    # ------------------------------------------------------------------
+
+    def can_route(self, model_id: str) -> bool:
+        """Return *True* if this backend can route *model_id*.
+
+        The default implementation checks whether *model_id* starts with
+        one of :pyattr:`ROUTABLE_ID_PREFIXES`.  Override or inject a
+        custom prefix tuple to widen or narrow the boundary.
+        """
+
+        return any(model_id.startswith(p) for p in self._routable_id_prefixes)
 
     def run(
         self,

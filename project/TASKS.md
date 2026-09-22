@@ -27,7 +27,7 @@ Existing implementation is retained. V1.1 governance gaps and architectural adap
 
 ## TASK-002 — Establish V1.1 Artifact and Task Model
 
-State: READY
+State: COMPLETED
 
 Objective:
 Implement the minimal authoritative project/task/handoff/execution artifact structures required by Protocol V1.1.
@@ -68,7 +68,7 @@ Medium
 
 ## TASK-003 — Execution Lease and UNKNOWN Recovery
 
-State: PENDING
+State: READY
 
 Dependencies:
 TASK-002

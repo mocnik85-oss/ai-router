@@ -43,3 +43,28 @@ class ProposalNotApprovedError(PMRuntimeError):
     This is the fail-closed result of the MVP-001 approval gate: an
     unapproved proposal never reaches an implementation backend.
     """
+
+
+class PMBatchError(PMRuntimeError):
+    """Base class for batch-level PM runtime control failures."""
+
+
+class BatchNotFoundError(PMBatchError):
+    """No batch exists for the requested batch identity.
+
+    Raised instead of any derived or partial record: a batch handoff or
+    approval may only ever be considered against a stored batch.
+    """
+
+
+class BatchAlreadyApprovedError(PMBatchError):
+    """A recorded batch approval must not be overwritten or rewritten."""
+
+
+class BatchNotApprovedError(PMBatchError):
+    """Implementation handoff refused: the batch is not approved.
+
+    This is the fail-closed result of the MVP-002 batch gate: an
+    unapproved batch (and any proposal that belongs to it) never
+    reaches an implementation backend.
+    """

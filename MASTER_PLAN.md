@@ -661,8 +661,8 @@ The system should evolve incrementally rather than through a single large implem
 
 **Consistency with the task register:** `project/TASKS.md` is the
 authoritative task register and currently contains TASK-001 through
-TASK-008 (all `COMPLETED`) plus MVP-001 (`COMPLETED`) grouped in
-MVP-BATCH-001, with MVP-002 and MVP-004 as the next approved tasks.
+TASK-008 (all `COMPLETED`) plus MVP-001, MVP-002, and MVP-004 (all
+`COMPLETED`) grouped in MVP-BATCH-001.
 MVP-003 (Dependency Graph + Batch Scheduler) is part of the approved
 Autonomous Coding MVP plan and is also grouped in MVP-BATCH-001, but it
 is `PLANNED` — not activated, not in the approved execution set, and

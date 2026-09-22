@@ -208,8 +208,9 @@ Evidence:
 Result:
 MVP-001 is recorded COMPLETED in this register. It does not dispatch or
 execute implementation work and grants no permission. MVP-002 and
-MVP-004 remain the next approved tasks of MVP-BATCH-001; the
-Autonomous Coding MVP as a whole is not complete.
+MVP-004 were the next approved tasks of MVP-BATCH-001 at the time this
+result was recorded; both are now COMPLETED. The Autonomous Coding MVP
+as a whole is not complete.
 
 ---
 
@@ -218,16 +219,15 @@ Autonomous Coding MVP as a whole is not complete.
 Batch membership:
 
 - MVP-001 — PM runtime (proposal path and approval gate) — COMPLETED
-- MVP-002 — next approved task — not yet started
+- MVP-002 — batch proposal and approval — COMPLETED (checkpoint 9016134)
 - MVP-003 — Dependency Graph + Batch Scheduler — PLANNED, not activated
-- MVP-004 — next approved task — not yet started
+- MVP-004 — implementer contract — COMPLETED (checkpoint 31d1217)
 
-MVP-001 is the completed member of this batch. MVP-002 and MVP-004 are
-the next approved batch tasks and remain not yet started. MVP-003 is a
-member of the approved Autonomous Coding MVP plan — it provides the
-dependency graph and batch scheduling machinery for the autonomous
-coding workflow — but it is PLANNED and NOT ACTIVATED: it is not part
-of the currently approved execution set, it has not started, and it is
-not a dependency or prerequisite of MVP-002 or MVP-004, so it does not
-block them. No other MVP task is approved or authorized by this
-record; new tasks must be created and authorized by the PM.
+MVP-001, MVP-002, and MVP-004 are the completed members of this
+batch. MVP-003 is a member of the approved Autonomous Coding MVP plan —
+it provides the dependency graph and batch scheduling machinery for the
+autonomous coding workflow — but it is PLANNED and NOT ACTIVATED: it is
+not part of the currently approved execution set, it has not started,
+and it is not a dependency or prerequisite of MVP-002 or MVP-004, so it
+does not block them. No other MVP task is approved or authorized by
+this record; new tasks must be created and authorized by the PM.

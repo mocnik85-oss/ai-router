@@ -284,6 +284,8 @@ Current structure (verified):
 ├── MASTER_PLAN.md          this document
 ├── README.md
 ├── app/                    configuration, validation, secret redaction
+├── pm/                     PM runtime: proposal path, approval gate,
+│                           implementation handoff gate (MVP-001)
 ├── protocol/               V1.1 governance: artifacts, lease,
 │                           results/evidence, PM interpretation
 ├── project/                PM records: PROJECT_STATE.md, TASKS.md,
@@ -483,13 +485,13 @@ Current verified baseline (offline; no network or paid model involved):
 
 ```text
 python -m pytest -q
-383 passed, 243 subtests passed
+414 passed, 243 subtests passed
 ```
 
 Additional checks completed:
 
 ```text
-python -m compileall -q app providers router protocol tests
+python -m compileall -q app providers router protocol pm tests
 git diff --check
 ```
 
@@ -659,9 +661,16 @@ The system should evolve incrementally rather than through a single large implem
 
 **Consistency with the task register:** `project/TASKS.md` is the
 authoritative task register and currently contains TASK-001 through
-TASK-008 (TASK-008 is the current task). Nothing below is scheduled,
-authorized, or represented as a task. New tasks must be created and
-authorized by the PM; the presence of an item here does not start work.
+TASK-008 (all `COMPLETED`) plus MVP-001 (`COMPLETED`) grouped in
+MVP-BATCH-001, with MVP-002 and MVP-004 as the next approved tasks.
+MVP-003 (Dependency Graph + Batch Scheduler) is part of the approved
+Autonomous Coding MVP plan and is also grouped in MVP-BATCH-001, but it
+is `PLANNED` — not activated, not in the approved execution set, and
+not a dependency or prerequisite of MVP-002 or MVP-004. The register,
+not this document, is authoritative for lifecycle state. Nothing below
+is scheduled, authorized, or represented as a task. New tasks must be
+created and authorized by the PM; the presence of an item here does not
+start work.
 
 Deferred items, none of them implemented today:
 
@@ -675,7 +684,8 @@ Deferred items, none of them implemented today:
 - Voice input
 - Speech-to-text
 - TTS (configuration keys exist; no implementation)
-- A user-facing CLI (none exists today)
+- A general user-facing CLI (only the PM runtime CLI exists today:
+  `python -m pm` propose/show/approve — MVP-001)
 - Persistent programmatic task history (document records exist under
   `project/`, but no subsystem)
 - More execution backends

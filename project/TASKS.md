@@ -171,3 +171,63 @@ Acceptance Criteria:
 - V1.1 authority model is represented.
 - Current architecture matches the repository.
 - Future work is consistent with the authoritative task register.
+
+---
+
+## MVP-001 — PM Runtime (Proposal Path and Approval Gate)
+
+State: COMPLETED
+
+Batch:
+MVP-BATCH-001
+
+Objective:
+Implement MVP-001 of the Autonomous Coding MVP: the authoritative
+PM-side runtime that turns a user text request into a structured,
+machine-readable PM proposal built from the existing V1.1 artifacts,
+records the explicit PM approval, and refuses any implementation
+handoff for a proposal that does not exist or is not approved.
+
+Implementation:
+- pm/__init__.py, pm/__main__.py — package and executable entry point
+- pm/cli.py — `python -m pm` propose / show / approve
+- pm/context.py — read-only loading of the PM-owned records
+- pm/proposal.py — structured PM proposal, identity, approval record
+- pm/runtime.py — propose / approve / handoff runtime and approval gate
+- pm/errors.py — fail-closed runtime errors
+- tests/test_pm_runtime.py — focused MVP-001 tests
+
+Evidence:
+- Focused MVP-001 tests (tests/test_pm_runtime.py): 31 passed
+- Full regression suite: 414 passed, 243 subtests passed
+- python -m compileall: passed
+- HEAD remains 48138fc; no commit and no push were made
+- No existing tracked source file was modified
+- protocol/validation/TASK-003-live-validation.json remains untouched
+
+Result:
+MVP-001 is recorded COMPLETED in this register. It does not dispatch or
+execute implementation work and grants no permission. MVP-002 and
+MVP-004 remain the next approved tasks of MVP-BATCH-001; the
+Autonomous Coding MVP as a whole is not complete.
+
+---
+
+## MVP-BATCH-001 — Autonomous Coding MVP
+
+Batch membership:
+
+- MVP-001 — PM runtime (proposal path and approval gate) — COMPLETED
+- MVP-002 — next approved task — not yet started
+- MVP-003 — Dependency Graph + Batch Scheduler — PLANNED, not activated
+- MVP-004 — next approved task — not yet started
+
+MVP-001 is the completed member of this batch. MVP-002 and MVP-004 are
+the next approved batch tasks and remain not yet started. MVP-003 is a
+member of the approved Autonomous Coding MVP plan — it provides the
+dependency graph and batch scheduling machinery for the autonomous
+coding workflow — but it is PLANNED and NOT ACTIVATED: it is not part
+of the currently approved execution set, it has not started, and it is
+not a dependency or prerequisite of MVP-002 or MVP-004, so it does not
+block them. No other MVP task is approved or authorized by this
+record; new tasks must be created and authorized by the PM.

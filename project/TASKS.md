@@ -68,7 +68,7 @@ Medium
 
 ## TASK-003 — Execution Lease and UNKNOWN Recovery
 
-State: READY
+State: COMPLETED
 
 Dependencies:
 TASK-002

@@ -1,3 +1,19 @@
+"""OpenCode execution adapter — the provider execution boundary.
+
+``OpenCodeClient.run()`` is the point where a governed execution
+request becomes a concrete OpenCode process.  The governing
+:class:`router.policy.ExecutionPolicy` is therefore enforced *here*,
+immediately before the process is spawned, and not only by the
+orchestrator's upstream validation.
+
+Protocol V1.1 boundary: the provider returns raw execution
+information only (:class:`OpenCodeResult` — exit code, events,
+stdout/stderr).  It imports no ``protocol`` governance model, holds no
+authoritative task/project artifacts, and therefore cannot transition
+authoritative state; interpreting its output belongs to the PM
+interpretation layer (``protocol.interpretation``).
+"""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -6,6 +22,8 @@ import json
 import subprocess
 from typing import Any
 
+from router.policy import READ_ONLY, ExecutionPolicy, write_capabilities
+
 
 class OpenCodeError(RuntimeError):
     """Base exception for OpenCode execution errors."""
@@ -13,6 +31,11 @@ class OpenCodeError(RuntimeError):
 
 class OpenCodeTimeoutError(OpenCodeError):
     """Raised when OpenCode exceeds its execution timeout."""
+
+
+class OpenCodePolicyError(OpenCodeError):
+    """Raised at the execution boundary when the governing policy forbids
+    the execution (e.g. a write-capable policy under read-only governance)."""
 
 
 @dataclass(slots=True)
@@ -53,7 +76,12 @@ class OpenCodeResult:
 
 
 class OpenCodeClient:
-    """Controlled adapter around the OpenCode CLI."""
+    """Controlled adapter around the OpenCode CLI.
+
+    :meth:`run` is the provider execution boundary: it receives the
+    governing execution policy, enforces the read-only contract, and
+    only then spawns the OpenCode process.
+    """
 
     DEFAULT_EXECUTABLE = str(Path.home() / ".opencode" / "bin" / "opencode")
     DEFAULT_MODEL = "opencode/mimo-v2.5-free"
@@ -93,15 +121,54 @@ class OpenCodeClient:
 
         return any(model_id.startswith(p) for p in self._routable_id_prefixes)
 
+    @staticmethod
+    def _enforce_read_only(policy: ExecutionPolicy) -> None:
+        """Refuse to start an execution the policy does not permit.
+
+        This is the TASK-004 read-only boundary check.  It runs inside
+        the provider, independently of any upstream validation, before
+        the command is built or the OpenCode process is spawned:
+
+        - an unknown/non-policy object is refused (fail closed);
+        - any enabled write-capable capability (edit, shell, network,
+          git, commit) is refused.
+        """
+
+        if not isinstance(policy, ExecutionPolicy):
+            raise OpenCodePolicyError(
+                "read-only execution boundary requires an "
+                f"ExecutionPolicy; got {type(policy).__name__!r}"
+            )
+
+        enabled = write_capabilities(policy)
+
+        if enabled:
+            raise OpenCodePolicyError(
+                "read-only execution boundary rejects write-capable "
+                f"capabilities: {', '.join(enabled)}"
+            )
+
     def run(
         self,
         prompt: str,
         workdir: str | Path,
         *,
         model: str | None = None,
+        policy: ExecutionPolicy | None = None,
     ) -> OpenCodeResult:
+        """Execute one OpenCode session under the governing *policy*.
+
+        *policy* is the applicable :class:`router.policy.ExecutionPolicy`
+        for this execution request.  ``policy=None`` is governed as
+        :data:`router.policy.READ_ONLY` (fail-closed default): a
+        write-capable policy is refused here, never silently downgraded
+        or trusted to upstream validation.
+        """
+
         if not prompt.strip():
             raise ValueError("Prompt cannot be empty.")
+
+        self._enforce_read_only(READ_ONLY if policy is None else policy)
 
         command = [
             self.executable,

@@ -1,4 +1,17 @@
-"""JEV v0.1 — Deterministic orchestration layer.
+"""JEV v0.1 — Deterministic dispatch core of the orchestration layer.
+
+JEV performs the mechanical dispatch duties: it validates the
+governing execution policy, resolves and selects a free model, invokes
+the execution backend, and returns the raw execution result
+(:class:`JEVResult`) — what the execution claimed, nothing more.
+
+Protocol V1.1 boundary: a ``JEVResult`` is raw execution state, never
+an authoritative task/project decision.  Converting results into PM
+decisions belongs exclusively to ``protocol.interpretation``; lease
+enforcement and execution bookkeeping belong to
+``router.orchestration``.  This module imports no ``protocol``
+governance model, so it cannot transition authoritative task/project
+state.
 
 Read-only execution only. No retries, no paid routing, no CLI/voice.
 """
@@ -14,7 +27,7 @@ from providers.openrouter import OpenRouterClient
 from providers.opencode import OpenCodeClient, OpenCodeResult
 from router.free_controller import FreeModelController, ModelRequirements
 from router.model_resolver import ModelResolver
-from router.policy import ExecutionPolicy, READ_ONLY
+from router.policy import ExecutionPolicy, READ_ONLY, write_capabilities
 
 
 class JEVError(RuntimeError):
@@ -49,7 +62,12 @@ class JEVResult:
 
 
 class JEV:
-    """v0.1 orchestrator: free model → ExecutionPolicy → OpenCode → result."""
+    """v0.1 dispatch core: free model → ExecutionPolicy → OpenCode → result.
+
+    Purely mechanical: it returns the raw execution result
+    (:class:`JEVResult`) and never interprets it into an authoritative
+    task/project decision.
+    """
 
     def __init__(
         self,
@@ -138,6 +156,11 @@ class JEV:
                 task.prompt,
                 task.workdir,
                 model=model_id,
+                # The governing policy travels with the execution request
+                # and is enforced again at the provider boundary
+                # (providers.opencode.OpenCodeClient.run), independently
+                # of the upstream validation above.
+                policy=task.policy,
             )
         except Exception as exc:
             return JEVResult(
@@ -189,17 +212,15 @@ class JEV:
 
     @staticmethod
     def _validate_policy(policy: ExecutionPolicy) -> None:
-        """Reject any policy that enables capabilities beyond read-only."""
+        """Reject any policy that enables capabilities beyond read-only.
 
-        forbidden = {
-            "edit": policy.edit,
-            "shell": policy.shell,
-            "network": policy.network,
-            "git": policy.git,
-            "commit": policy.commit,
-        }
+        This is the *upstream* check only.  The authoritative TASK-004
+        enforcement happens at the provider execution boundary
+        (``providers.opencode.OpenCodeClient.run``), which validates the
+        same contract via ``router.policy.write_capabilities``.
+        """
 
-        enabled = [name for name, value in forbidden.items() if value]
+        enabled = write_capabilities(policy)
 
         if enabled:
             raise PolicyViolationError(

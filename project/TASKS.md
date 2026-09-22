@@ -86,7 +86,7 @@ Acceptance Criteria:
 
 ## TASK-004 — Enforce Read-Only Execution Boundary
 
-State: PENDING
+State: COMPLETED
 
 Dependencies:
 TASK-002
@@ -104,7 +104,7 @@ Acceptance Criteria:
 
 ## TASK-005 — Result and Evidence Model
 
-State: PENDING
+State: COMPLETED
 
 Dependencies:
 TASK-002
@@ -123,7 +123,7 @@ Acceptance Criteria:
 
 ## TASK-006 — PM Interpretation Layer
 
-State: PENDING
+State: COMPLETED
 
 Dependencies:
 TASK-003, TASK-005
@@ -140,7 +140,7 @@ Acceptance Criteria:
 
 ## TASK-007 — Separate Governance, Orchestration, and Execution
 
-State: PENDING
+State: COMPLETED
 
 Dependencies:
 TASK-002, TASK-003, TASK-004, TASK-005, TASK-006
@@ -158,7 +158,7 @@ Acceptance Criteria:
 
 ## TASK-008 — Reconcile MASTER_PLAN.md
 
-State: PENDING
+State: COMPLETED
 
 Dependencies:
 TASK-007

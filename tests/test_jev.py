@@ -92,6 +92,7 @@ class _FakeClient(OpenCodeClient):
         workdir: str | Path,
         *,
         model: str | None = None,
+        policy: ExecutionPolicy | None = None,
     ) -> OpenCodeResult:
         return self._result
 
@@ -266,7 +267,7 @@ class TestJEVExecution(unittest.TestCase):
         """If the client raises, JEV catches it and returns a failure."""
 
         class ExplodingClient(OpenCodeClient):
-            def run(self, prompt, workdir, *, model=None):
+            def run(self, prompt, workdir, *, model=None, policy=None):
                 raise OSError("subprocess missing")
 
             def can_route(self, model_id: str) -> bool:

@@ -661,8 +661,10 @@ The system should evolve incrementally rather than through a single large implem
 
 **Consistency with the task register:** `project/TASKS.md` is the
 authoritative task register and currently contains TASK-001 through
-TASK-008 (all `COMPLETED`) plus MVP-001, MVP-002, and MVP-004 (all
-`COMPLETED`) grouped in MVP-BATCH-001.
+TASK-008 (all `COMPLETED`) plus MVP-001, MVP-002, MVP-004, and MVP-005
+(all `COMPLETED`); MVP-001, MVP-002, and MVP-004 are grouped in
+MVP-BATCH-001 (MVP-005, the OpenCode Implementer Adapter, checkpoint
+a1efb01, is recorded without a stated batch membership).
 MVP-003 (Dependency Graph + Batch Scheduler) is part of the approved
 Autonomous Coding MVP plan and is also grouped in MVP-BATCH-001, but it
 is `PLANNED` — not activated, not in the approved execution set, and

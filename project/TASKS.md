@@ -231,3 +231,53 @@ not part of the currently approved execution set, it has not started,
 and it is not a dependency or prerequisite of MVP-002 or MVP-004, so it
 does not block them. No other MVP task is approved or authorized by
 this record; new tasks must be created and authorized by the PM.
+
+---
+
+## MVP-005 — OpenCode Implementer Adapter
+
+Task: MVP-005
+
+Name: OpenCode Implementer Adapter
+
+State: COMPLETED
+
+Checkpoint: a1efb01 — Complete MVP-005 OpenCode implementer adapter
+(branch protocol-v1.1-migration; remote push successful)
+
+Objective:
+Record the PM-accepted completion of MVP-005, the first concrete
+backend adapter for the backend-independent Implementer contract
+established by MVP-004 (protocol/implementer.py). Recorded here by a
+PM-authorized, record-only reconciliation; no implementation, protocol,
+router, provider, or test file is changed by this record.
+
+Delivered:
+- router/opencode_implementer.py — OpenCode Implementer adapter
+  (translation only, both directions: generic ImplementationTask /
+  ImplementationReport ↔ the existing OpenCode/JEV execution mechanism)
+- tests/test_opencode_implementer.py — focused offline MVP-005 tests
+
+Evidence:
+- Implementation checkpoint: a1efb01 (2 files changed, 1296
+  insertions: router/opencode_implementer.py,
+  tests/test_opencode_implementer.py), pushed to
+  protocol-v1.1-migration
+- Reconciliation verification (record-only):
+  - python -m pytest -q → 573 passed, 243 subtests passed
+  - python -m compileall -q protocol router pm providers tests app → passed
+  - git diff --check → clean
+  - only project/TASKS.md, project/PROJECT_STATE.md, and
+    MASTER_PLAN.md modified; no implementation file changed
+  - protocol/validation/ remains untouched (still untracked, unchanged)
+  - no commit and no push were made by this reconciliation
+
+Result:
+MVP-005 is recorded COMPLETED in this register with checkpoint a1efb01.
+MVP-001, MVP-002, and MVP-004 remain COMPLETED; MVP-003 remains
+PLANNED / NOT ACTIVATED; no other task state is changed by this record.
+MVP-005's membership in MVP-BATCH-001 is not stated by any existing
+record, so this entry asserts no batch membership and the MVP-BATCH-001
+membership list above is left unchanged — the ambiguity is reported to
+the PM rather than resolved here. The Autonomous Coding MVP as a whole
+is not complete.

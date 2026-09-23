@@ -53,19 +53,21 @@ MVP-003 (Dependency Graph + Batch Scheduler): PLANNED — not activated,
 not part of the approved execution set, and not a prerequisite for
 MVP-002 or MVP-004.
 MVP-004 (implementer contract): COMPLETED — checkpoint 31d1217
+MVP-005 (OpenCode Implementer Adapter): COMPLETED — checkpoint a1efb01
 
 MVP-BATCH-001: MVP-001, MVP-002, and MVP-004 completed; MVP-003
-remains PLANNED and not activated.
+remains PLANNED and not activated. MVP-005 is recorded COMPLETED in
+project/TASKS.md without a stated batch membership.
 
 The Autonomous Coding MVP as a whole is NOT complete: MVP-003 is still
-PLANNED / NOT ACTIVATED. Completion state for MVP-001, MVP-002, and
-MVP-004 is recorded in project/TASKS.md, with the MVP-002 and MVP-004
-checkpoints referenced there.
+PLANNED / NOT ACTIVATED. Completion state for MVP-001, MVP-002,
+MVP-004, and MVP-005 is recorded in project/TASKS.md, with the
+MVP-002, MVP-004, and MVP-005 checkpoints referenced there.
 
 ## Immediate PM Objective
 
-No further MVP-BATCH-001 task is currently activated. MVP-001,
-MVP-002, and MVP-004 are COMPLETED; MVP-003 remains PLANNED / NOT
+No further task is currently activated. MVP-001, MVP-002, MVP-004,
+and MVP-005 are COMPLETED; MVP-003 remains PLANNED / NOT
 ACTIVATED and must not be scheduled without a new PM authorization.
 Awaiting the PM's next decision; any new task must be created and
 authorized by the PM.
@@ -78,4 +80,5 @@ Do not restart the implementation.
 
 Do not expand feature scope beyond the approved MVP-BATCH-001 tasks
 (MVP-001, MVP-002, and MVP-004 completed; MVP-003 planned, not
-activated).
+activated) and the completed MVP-005 (OpenCode Implementer Adapter,
+checkpoint a1efb01).

@@ -79,6 +79,7 @@ from pm.batch import (
     proposal_content,
 )
 from pm.context import ProjectContext
+from pm.scheduler import ExecutionPlan
 from pm.errors import (
     BatchAlreadyApprovedError,
     BatchNotFoundError,
@@ -202,6 +203,25 @@ class ProposalStore:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(proposal.to_json() + "\n", encoding="utf-8")
         return path
+
+    def find_by_task_id(self, task_id: str) -> PMProposal | None:
+        """The stored proposal whose task carries *task_id*, if any.
+
+        Returns ``None`` when no stored proposal matches.  A stored
+        proposal that cannot be read or is invalid fails closed with
+        :class:`~pm.errors.PMRuntimeError` (via :meth:`load`), so an
+        unreadable record can never hide a task from scheduling.
+        """
+
+        if not self.directory.is_dir():
+            return None
+        for path in sorted(self.directory.glob("*.json")):
+            if not PROPOSAL_ID_RE.match(path.stem):
+                continue
+            proposal = self.load(path.stem)
+            if proposal.task.task_id == task_id:
+                return proposal
+        return None
 
 
 class BatchStore:
@@ -678,3 +698,39 @@ class PMRuntime:
                     "refused"
                 )
         return backend(batch)
+
+    def schedule_batches(self, plan: ExecutionPlan) -> tuple[PMBatch, ...]:
+        """Turn an :class:`~pm.scheduler.ExecutionPlan` into stored batches.
+
+        For every :class:`~pm.scheduler.ScheduledBatch` in *plan* this
+        method finds the stored proposal whose task carries the
+        scheduled task identity and groups those proposals into a
+        :class:`~pm.batch.PMBatch` via the existing
+        :meth:`propose_batch` gate — so the scheduled batches are
+        ordinary PM-owned batch records, subject to the same approval
+        and handoff gates as any other batch.
+
+        Fail-closed: a scheduled task with no stored proposal raises
+        :class:`~pm.errors.PMRuntimeError` before any batch is
+        written, so a partial plan can never produce a partial set of
+        batch records.
+
+        Creating these batches records no approval, changes no
+        register file, and reaches no backend: it only represents
+        which proposals a later batch approval would authorize, in the
+        dependency-safe order the scheduler derived.
+        """
+
+        batches: list[PMBatch] = []
+        for scheduled in plan.batches:
+            proposal_ids: list[str] = []
+            for task_id in scheduled.task_ids:
+                proposal = self._store.find_by_task_id(task_id)
+                if proposal is None:
+                    raise PMRuntimeError(
+                        f"scheduled task {task_id!r} has no stored "
+                        "proposal; cannot form a batch"
+                    )
+                proposal_ids.append(proposal.proposal_id)
+            batches.append(self.propose_batch(proposal_ids))
+        return tuple(batches)

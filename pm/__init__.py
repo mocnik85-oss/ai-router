@@ -61,12 +61,16 @@ from pm.errors import (
     BatchAlreadyApprovedError,
     BatchNotApprovedError,
     BatchNotFoundError,
+    DependencyCycleError,
+    DependencyError,
     PMBatchError,
     PMContextError,
     PMRuntimeError,
     ProposalAlreadyApprovedError,
     ProposalNotFoundError,
     ProposalNotApprovedError,
+    SelfDependencyError,
+    UnknownDependencyError,
 )
 from pm.proposal import (
     PROPOSAL_SCHEMA,
@@ -82,6 +86,12 @@ from pm.runtime import (
     ProposalStore,
     default_project_root,
 )
+from pm.scheduler import (
+    DependencyGraph,
+    ExecutionPlan,
+    ScheduledBatch,
+    schedule_execution,
+)
 
 __all__ = [
     "BATCH_SCHEMA",
@@ -94,6 +104,10 @@ __all__ = [
     "BatchNotApprovedError",
     "BatchNotFoundError",
     "BatchStore",
+    "DependencyCycleError",
+    "DependencyError",
+    "DependencyGraph",
+    "ExecutionPlan",
     "PMBatch",
     "PMBatchError",
     "PMContextError",
@@ -106,8 +120,12 @@ __all__ = [
     "ProposalNotFoundError",
     "ProposalNotApprovedError",
     "ProposalStore",
+    "ScheduledBatch",
+    "SelfDependencyError",
     "TaskRegisterEntry",
+    "UnknownDependencyError",
     "default_project_root",
     "derive_batch_identity",
     "derive_identity",
+    "schedule_execution",
 ]

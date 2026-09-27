@@ -68,3 +68,32 @@ class BatchNotApprovedError(PMBatchError):
     unapproved batch (and any proposal that belongs to it) never
     reaches an implementation backend.
     """
+
+
+class DependencyError(PMRuntimeError):
+    """Base class for dependency graph control failures (MVP-003)."""
+
+
+class UnknownDependencyError(DependencyError):
+    """A task references a dependency that does not exist.
+
+    Raised instead of any partial schedule: a dependency on an
+    unknown task is malformed dependency information and fails
+    closed.
+    """
+
+
+class SelfDependencyError(DependencyError):
+    """A task depends on itself.
+
+    Raised instead of any partial schedule: a self-dependency is
+    malformed dependency information and fails closed.
+    """
+
+
+class DependencyCycleError(DependencyError):
+    """A dependency cycle was detected.
+
+    Raised instead of any partial schedule: a cyclic dependency
+    graph has no valid topological order and fails closed.
+    """

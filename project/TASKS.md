@@ -327,3 +327,52 @@ record, so this entry asserts no batch membership and the MVP-BATCH-001
 membership list above is left unchanged — the ambiguity is reported to
 the PM rather than resolved here. The Autonomous Coding MVP as a whole
 is not complete.
+
+---
+
+## TASK-009 — Live OpenCode E2E Integration Validation
+
+State: READY
+
+Dependencies:
+TASK-008
+
+Objective:
+Validate the real JEV → OpenCode execution path against the repository using a controlled read-only live E2E execution.
+
+Scope:
+- Exercise the real OpenCode process through the existing JEV/orchestration path.
+- Use `/home/deck/ai-router` as the repository workspace.
+- Use READ_ONLY execution policy only.
+- Verify that the actual OpenCode process receives the intended repository context.
+- Verify that successful live execution produces a structured result/evidence record.
+- Verify that repository state remains unchanged by the read-only execution.
+- Preserve complete validation evidence.
+- Do not modify implementation code, governance records, or frozen architecture.
+- Do not enable autonomous write execution.
+- Do not retry automatically after an UNKNOWN or uncertain external outcome.
+
+Acceptance Criteria:
+- A real OpenCode process is invoked through the existing JEV execution path.
+- The repository path is `/home/deck/ai-router`.
+- READ_ONLY policy is enforced at the execution boundary.
+- The live execution completes with a captured structured result.
+- Repository state before and after execution is demonstrably unchanged.
+- Validation evidence identifies task, execution, model, repository, policy, result, and verification outcome.
+- Failure or UNKNOWN outcomes are preserved and interpreted without silently creating a replacement execution.
+- Existing test suite remains passing.
+- No source implementation or authoritative lifecycle state is modified by the execution agent.
+
+Required capability:
+Live OpenCode execution, JEV/orchestration integration, repository verification, evidence capture, and failure-safe execution.
+
+Verification:
+Pre/post repository state comparison, live execution result inspection, focused integration validation, full regression suite, compile check, and PM review of the resulting evidence.
+
+Risk:
+HIGH
+
+Budget:
+Existing local environment only. No paid model/API required.
+
+---

@@ -174,6 +174,73 @@ Acceptance Criteria:
 
 ---
 
+---
+
+## TASK-010 — Diagnose and Correct Live JEV → OpenCode Timeout
+
+State: READY
+
+Dependencies:
+TASK-008
+
+Derived from:
+TASK-009 failure evidence and PM REROUTE decision
+
+Objective:
+Diagnose and correct the demonstrated JEV → OpenCode integration timeout while preserving Protocol V1.1 governance, READ_ONLY enforcement, mechanical orchestration, and provider separation.
+
+Evidence basis:
+- TASK-009 live execution invoked the real JEV → OpenCode path.
+- TASK-009 selected model: opencode/nemotron-3.5-lightning-free.
+- TASK-009 timed out at the configured 120.0 second OpenCode provider timeout.
+- Direct OpenCode smoke test using the same model and repository completed successfully with exit status 0 in approximately 4–5 seconds.
+- TASK-009 repository state remained unchanged.
+- Existing regression suite passed: 615 tests, 243 subtests.
+
+Scope:
+- Diagnose the difference between direct OpenCode execution and the JEV → OpenCode execution path demonstrated by TASK-009.
+- Inspect and correct only the concrete integration defect supported by evidence.
+- Preserve the existing V1.1 governance/orchestration boundaries.
+- Preserve READ_ONLY enforcement.
+- Preserve provider/model separation.
+- Validate the corrected path with a controlled live E2E execution.
+- Preserve complete execution and verification evidence.
+
+Explicitly out of scope:
+- Automatic retry/fallback implementation.
+- New execution authority or write-capable modes.
+- --auto execution.
+- Paid-model routing.
+- Governance redesign.
+- Frozen architecture redesign.
+- Silent retry of TASK-009.
+
+Acceptance Criteria:
+- Root cause of the JEV → OpenCode timeout is identified with evidence.
+- Minimal correction is implemented without weakening V1.1 governance or READ_ONLY enforcement.
+- Existing automated regression suite remains passing.
+- Corrected JEV → OpenCode path completes a controlled live read-only execution against /home/deck/ai-router.
+- Live execution uses the intended model-routing path.
+- Repository state is unchanged by the validation execution.
+- No automatic retry/fallback occurs.
+- Execution, verification, and evidence are traceable to TASK-010.
+- Independent review confirms the correction does not bypass PM authority, orchestration controls, lease rules, or provider policy enforcement.
+
+Required capability:
+Python/JEV/OpenCode integration debugging, controlled live execution, repository verification, regression testing, and V1.1 governance compliance.
+
+Verification:
+Focused tests for the corrected integration path, full regression suite, compile check, controlled live E2E execution, pre/post repository-state comparison, diff inspection, and independent review.
+
+Risk:
+HIGH
+
+Budget:
+Existing local environment only. No paid model/API required.
+
+---
+
+
 ## MVP-001 — PM Runtime (Proposal Path and Approval Gate)
 
 State: COMPLETED

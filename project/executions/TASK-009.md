@@ -15,8 +15,8 @@ Idempotency Key: TASK-009-v1-exec-001
 Lease ID: LEASE-TASK-009-001
 
 Task State: READY
-Handoff State: READY
-Execution State: NOT_STARTED
+Handoff State: PROCESSED
+Execution State: FAILED
 
 Authorized by: Project Manager
 Authorization Basis: TASK-008 COMPLETED; TASK-009 READY; dependency satisfied.
@@ -64,3 +64,38 @@ LEASE-TASK-009-001
 
 Lease Rule:
 Only one active execution lease may exist for TASK-009 version 1.
+
+
+## PM Reconciliation
+
+The authorized execution EXEC-TASK-009-001 was actually performed once through
+the existing Orchestrator -> JEV -> OpenCode path.
+
+Observed execution result:
+- OpenCode process invoked: YES
+- Repository: /home/deck/ai-router
+- Execution policy: READ_ONLY
+- Selected model: opencode/nemotron-3.5-lightning-free
+- Execution result: FAILURE
+- Failure reason: OpenCode exceeded the configured 120.0 second timeout
+- Automatic retry/fallback: NO
+- Lease result: RELEASED
+- Execution state at lease release: FINISHED
+- Repository state before/after: unchanged
+- Regression: 615 passed, 243 subtests passed
+- git diff --check: PASS
+
+PM interpretation:
+FAILURE -> REROUTE.
+
+TASK-009 therefore is not completed. The live execution demonstrated that the
+authorized JEV -> OpenCode path was invoked and bounded safely, but the
+successful-live-execution acceptance criterion was not satisfied.
+
+This is a record-only reconciliation. No implementation code, governance
+architecture, or frozen requirement is changed by this record.
+
+No replacement execution is authorized by this reconciliation.
+No automatic retry is authorized.
+A subsequent reroute/recovery task requires an explicit PM decision and
+authorization.

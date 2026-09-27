@@ -241,6 +241,79 @@ Existing local environment only. No paid model/API required.
 ---
 
 
+
+## TASK-011 — Diagnose Model/Provider-Route-Specific OpenCode Timeout
+
+State: READY
+
+Dependencies:
+TASK-010 execution reconciled as FAILURE -> REROUTE
+
+Objective:
+Diagnose the demonstrated model/provider-route-specific timeout affecting
+opencode/nemotron-3.5-lightning-free through the normal JEV -> OpenCode path,
+without assuming a router defect and without weakening Protocol V1.1 governance.
+
+Evidence basis:
+- TASK-010 authorized real JEV -> OpenCode execution and selected
+  opencode/nemotron-3.5-lightning-free through the normal model catalogue.
+- That execution exceeded the configured 120.0 second OpenCode timeout.
+- A separate controlled JEV -> OpenCode diagnostic using
+  opencode/mimo-v2.6-flash-free completed successfully.
+- Existing regression and compile checks pass.
+- TASK-010 produced no implementation diff.
+- Root cause remains unproven.
+
+Scope:
+- Compare the failing Nemotron route with the known-working Mimo route.
+- Inspect model resolution, routing, OpenCode invocation, environment,
+  timeout behavior, and provider responses as evidence permits.
+- Reproduce the failure only within explicitly authorized controlled executions.
+- Identify the smallest evidence-supported root cause.
+- If and only if a concrete implementation defect is established, propose or
+  implement the narrowly scoped correction and verify it separately.
+
+Constraints:
+- Initial diagnostic execution is READ_ONLY.
+- No automatic retry or fallback.
+- No --auto execution.
+- No paid model/API execution.
+- No governance redesign.
+- No frozen architecture redesign.
+- No silent replacement execution.
+- Preserve PM authority, execution leases, and provider boundaries.
+- Do not treat model/agent claims as authoritative evidence.
+- Do not declare completion from a successful process exit alone.
+
+Acceptance Criteria:
+- Root-cause determination is supported by reproducible evidence, or the
+  remaining uncertainty is explicitly documented.
+- No unsupported router modification is introduced.
+- Existing regression suite remains passing.
+- Compile check passes.
+- Any live validation is controlled, read-only unless a separately justified
+  correction requires otherwise, and leaves the repository unchanged.
+- No automatic retry/fallback occurs.
+- Evidence is traceable to TASK-011.
+- Independent review confirms governance, lease, orchestration, and provider
+  boundaries remain intact.
+
+Required capability:
+Python/JEV/OpenCode integration diagnosis, model/provider-route analysis,
+controlled live execution, repository verification, regression testing, and
+V1.1 governance compliance.
+
+Verification:
+Focused diagnostic tests/checks, full regression suite, compile check,
+controlled live comparison where required, pre/post repository-state
+comparison, diff inspection, and independent review.
+
+Risk:
+HIGH
+
+Budget:
+Existing local environment only. No paid model/API required.
+
 ## MVP-001 — PM Runtime (Proposal Path and Approval Gate)
 
 State: COMPLETED

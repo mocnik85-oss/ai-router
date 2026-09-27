@@ -214,23 +214,69 @@ as a whole is not complete.
 
 ---
 
+## MVP-003 — Dependency Graph + Batch Scheduler
+
+Task: MVP-003
+
+Name: Dependency Graph + Batch Scheduler
+
+State: COMPLETED
+
+Objective:
+Implement the PM-side dependency graph and deterministic batch scheduler
+for the Autonomous Coding MVP.
+
+Delivered:
+- pm/scheduler.py — validated dependency graph, deterministic
+  topological ordering, authoritative-state readiness, and
+  dependency-safe batch scheduling
+- pm/errors.py — dependency-specific fail-closed errors
+- pm/runtime.py — proposal lookup and PM-owned schedule-to-batch bridge
+- pm/__init__.py — public scheduler exports
+- tests/test_pm_scheduler.py — focused offline scheduler tests
+
+Acceptance / Verification:
+- Unknown dependencies rejected
+- Self-dependencies rejected
+- Dependency cycles rejected
+- Authoritative COMPLETED state releases dependents
+- Unfinished dependencies prevent premature execution
+- Independent tasks are batched deterministically
+- Equivalent input orderings produce identical plans
+- PM lifecycle authority remains unchanged
+- No backend, network, credential, autonomous-write, or Git execution
+  is performed by the scheduler
+
+Evidence:
+- Focused MVP-003 tests: 42 passed
+- Full regression suite: 615 passed, 243 subtests passed
+- git diff --check: passed
+- compileall: passed
+- Commit: b4f3894 — Implement MVP-003 dependency scheduler
+- Branch: protocol-v1.1-migration
+
+Result:
+MVP-003 is recorded COMPLETED. The dependency graph and deterministic
+batch scheduler are implemented, independently verified, and committed.
+No other task state is changed by this record.
+
+---
+
 ## MVP-BATCH-001 — Autonomous Coding MVP
 
 Batch membership:
 
 - MVP-001 — PM runtime (proposal path and approval gate) — COMPLETED
 - MVP-002 — batch proposal and approval — COMPLETED (checkpoint 9016134)
-- MVP-003 — Dependency Graph + Batch Scheduler — PLANNED, not activated
+- MVP-003 — Dependency Graph + Batch Scheduler — COMPLETED (commit b4f3894)
 - MVP-004 — implementer contract — COMPLETED (checkpoint 31d1217)
 
-MVP-001, MVP-002, and MVP-004 are the completed members of this
-batch. MVP-003 is a member of the approved Autonomous Coding MVP plan —
-it provides the dependency graph and batch scheduling machinery for the
-autonomous coding workflow — but it is PLANNED and NOT ACTIVATED: it is
-not part of the currently approved execution set, it has not started,
-and it is not a dependency or prerequisite of MVP-002 or MVP-004, so it
-does not block them. No other MVP task is approved or authorized by
-this record; new tasks must be created and authorized by the PM.
+MVP-001, MVP-002, MVP-003, and MVP-004 are completed members of
+this batch. MVP-003 provides the dependency graph and deterministic batch
+scheduling machinery for the autonomous coding workflow. MVP-005 remains
+recorded COMPLETED without stated batch membership. No other MVP task is
+approved or authorized by this record; new tasks must be created and
+authorized by the PM.
 
 ---
 
@@ -274,8 +320,8 @@ Evidence:
 
 Result:
 MVP-005 is recorded COMPLETED in this register with checkpoint a1efb01.
-MVP-001, MVP-002, and MVP-004 remain COMPLETED; MVP-003 remains
-PLANNED / NOT ACTIVATED; no other task state is changed by this record.
+MVP-001, MVP-002, MVP-003, and MVP-004 remain COMPLETED; no other
+task state is changed by this record.
 MVP-005's membership in MVP-BATCH-001 is not stated by any existing
 record, so this entry asserts no batch membership and the MVP-BATCH-001
 membership list above is left unchanged — the ambiguity is reported to
